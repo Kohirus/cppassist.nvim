@@ -25,6 +25,8 @@ map('n', '<leader>cf', '<Cmd>CreateFuncDefInSource<CR>', opts)
 map('n', '<leader>cv', '<Cmd>CreateStaticVarDefInSource<CR>', opts)
 ```
 
+> 🚨 Now, the `CreateStaticVarDefInSource` command has some error !
+
 # TODO
 
 - [x] switch between source and header
