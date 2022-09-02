@@ -4,10 +4,10 @@ A Neovim plugin that can do sometings like VAssistX.
 
 ```lua
 use {
-	'tuilk/cppassist.nvim',
-	opt = true,
-	ft = { "h", "cpp", "hpp", "c", "cc" },
-	requires = { {'nvim-lua/plenary.nvim'} }
+  'tuilk/cppassist.nvim',
+  opt = true,
+  ft = { "h", "cpp", "hpp", "c", "cc" },
+  requires = { {'nvim-lua/plenary.nvim'} }
 }
 ```
 
