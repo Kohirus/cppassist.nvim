@@ -35,20 +35,19 @@ end
 function M.Find(matching_files, filename, extension, desired_extension, funcstr)
 	for index, value in ipairs(matching_files) do
 		local path, matched_filename, matched_extension = M.SpiltFilename(value)
-
 		if
 			(matched_extension == desired_extension and matched_extension ~= extension)
 			and filename == matched_filename
 		then
+			local command_string = "edit " .. matching_files[index]
+			cmd(command_string)
 			if funcstr ~= "" then
 				local t = M.SplitString(funcstr, "\n")
 				for _, j in ipairs(t) do
-					local cmdstr = 'call writefile(["' .. j .. '"], "' .. matching_files[index] .. '", "a")'
-					cmd(cmdstr)
+					fn.append(fn.line("$"), j)
 				end
+        fn.append(fn.line("$"), " ")
 			end
-			local command_string = "edit " .. matching_files[index]
-			cmd(command_string)
 			return true
 		end
 	end
@@ -60,21 +59,21 @@ function M.GetCursorDeclare(isFunc)
 	local endline = fn.search(";")
 	local lines = fn.getline(startline, endline)
 	local ln = fn.join(lines, "\n")
-	ln = string.gsub(ln, "^%s+", "")
+	ln = string.gsub(ln, "^%s+", "", 1)
 	if isFunc then
-		ln = string.gsub(ln, "virtual%s+", "")
+		ln = string.gsub(ln, "virtual%s+", "", 1)
 	else
-		ln = string.gsub(ln, "static%s+", "")
+		ln = string.gsub(ln, "static%s+", "", 1)
 	end
-	ln = string.gsub(ln, ";", "")
+	ln = string.gsub(ln, ";", "", 1)
 
-	local class = fn.search("class", "b")
+	local class = fn.search("class", "bn")
 	class = fn.getline(class)
 	if string.len(class) > 0 then
-		class = fn.matchlist(class, "class\\s\\+\\([a-zA-Z]\\+\\)")[1]
-		class = string.gsub(class, "class%s+", "")
+		class = fn.matchlist(class, "class\\s\\+\\([a-zA-Z_]\\+\\)")[1]
+		class = string.gsub(class, "class%s+", "", 1)
 		local obj = "\\1" .. class .. "::\\2"
-		local fname = fn.substitute(ln, "\\([a-zA-Z]\\+\\s\\+\\)*\\(.*\\)", obj, "")
+		local fname = fn.substitute(ln, "\\([a-zA-Z_%*]\\+\\s\\+\\)*\\(.*\\)", obj, "")
 		ln = fname
 	end
 
@@ -83,20 +82,31 @@ end
 
 function M.GeneratreStaticVarUnderCursor()
 	local ln = M.GetCursorDeclare(false)
-	local data_type = string.match(ln, "([a-zA-Z]+)%s+")
-  ln = ln .. " = " .. data_type .. "();\n"
-  return ln
+	-- local data_type = string.match(ln, "([a-zA-Z_%*]+)%s+")
+	-- ln = ln .. " = " .. data_type .. "();\n"
+	ln = ln .. ";\n"
+	return ln
 end
 
 function M.GenerateFuncUnderCursor()
 	local ln = M.GetCursorDeclare(true)
 	local start, _ = string.find(ln, "[%(].*[%)]")
 	local sub = string.sub(ln, 1, start)
-	local data_type = string.match(sub, "([a-zA-Z]+)%s+")
+	local data_type = string.match(sub, "([a-zA-Z_%*]+)%s+")
+	-- Constructor/Destructor
 	if data_type == nil then
 		ln = ln .. " {\n}\n"
 	else
-		ln = ln .. " {\n\treturn " .. data_type .. "();\n}\n"
+		local pointer, _ = string.find(data_type, "%*")
+		-- return pointer
+		if pointer ~= nil then
+			ln = ln .. " {\n\t return NULL;\n}\n"
+		-- return void
+		elseif data_type == "void" then
+			ln = ln .. " {\n}\n"
+		else
+			ln = ln .. " {\n\treturn " .. data_type .. "();\n}\n"
+		end
 	end
 	return ln
 end
