@@ -1,5 +1,7 @@
 A Neovim plugin that can do sometings like VAssistX.
 
+<video src="https://user-images.githubusercontent.com/45937428/188934929-f462c7f4-8323-49a7-940f-d68322563313.mp4" width="100%"></video>
+
 # Installation
 
 ```lua
