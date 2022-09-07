@@ -2,7 +2,7 @@ A Neovim plugin that can do sometings like VAssistX.
 
 <video src="https://user-images.githubusercontent.com/45937428/188934929-f462c7f4-8323-49a7-940f-d68322563313.mp4" width="100%"></video>
 
-# Installation📦
+## Installation📦
 
 ```lua
 use {
@@ -13,14 +13,14 @@ use {
 }
 ```
 
-# Details📝
+## Details📝
 
 - It uses regular expressions instead of LSP;
 - It can recognize underscores and asterisks in data types;
 - It can recognize the pointer type and uses `NULL` as the return type;
 - It can recognize multi-line function declarations;
 
-# Usage🔨
+## Usage🔨
 
 Place the cursor on the line where the declaration is located, and press 
 the shortcut key to generate the corresponding definition. Be careful not 
@@ -38,7 +38,7 @@ map('n', '<leader>cf', '<Cmd>CreateFuncDefInSource<CR>', opts)
 map('n', '<leader>cv', '<Cmd>CreateStaticVarDefInSource<CR>', opts)
 ```
 
-# Shortcoming👎
+## Shortcoming👎
 
 - Unable to generate a function definition in the order of the declaration;
 - Unable to replace the type defined by `typedef`;
@@ -48,7 +48,7 @@ map('n', '<leader>cv', '<Cmd>CreateStaticVarDefInSource<CR>', opts)
 
 > In addition, the code is very bad, and it may need to be reconstructed later.
 
-# TODO🚀
+## TODO🚀
 
 - [x] switch between source and header
 - [x] generate the function definition in source
@@ -56,6 +56,6 @@ map('n', '<leader>cv', '<Cmd>CreateStaticVarDefInSource<CR>', opts)
 - [ ] generate the Get()/Set() method for variable
 - [ ] generate the multi function definitions in the view mode
 
-# Special Thanks🙏
+## Special Thanks🙏
 
 - [ouroboros.nvim](https://github.com/jakemason/ouroboros.nvim): quickly switching between header and implementation files
