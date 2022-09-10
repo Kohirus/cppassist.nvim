@@ -18,7 +18,8 @@ use {
 - It uses regular expressions instead of LSP;
 - It can recognize underscores and asterisks in data types;
 - It can recognize the pointer type and uses `NULL` as the return type;
-- It can recognize multi-line function declarations;
+- It can recognize a single function multi-line declaration;
+- It supports for virtual function and static variable definitions;
 
 ## Usage🔨
 
