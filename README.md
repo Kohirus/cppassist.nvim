@@ -17,9 +17,14 @@ use {
 
 - It uses regular expressions instead of LSP;
 - It can recognize underscores and asterisks in data types;
-- It can recognize the pointer type and uses `NULL` as the return type;
-- It can recognize a single function multi-line declaration;
-- It supports for virtual function and static variable definitions;
+- It can recognize the simple return type;
+- It can recognize multi-line function declarations;
+- It can recognize class templates;
+- It can recognize the following keywords: const，explicit, static, override, final, virtual, friend, = 0, = default,
+= delete, noexcept, constexpr;
+
+> In my opinion, the inline keyword should be defined in the source file and not in the header file, 
+because this keyword needs to be told to the compiler, not the user, so it is not implemented here
 
 ## Usage🔨
 
@@ -27,27 +32,20 @@ Place the cursor on the line where the declaration is located, and press
 the shortcut key to generate the corresponding definition. Be careful not 
 to place the cursor at the semicolon, it will cause an error!
 
+If a function is defined on more than one line, place the cursor on the 
+starting line in the function definition!
+
 ```lua
 local map = vim.api.nvim_set_keymap
 local opts = { noremap = true, silent = true }
 
 -- switch between source and header
 map('n', '<A-o>', '<Cmd>SwitchSourceAndHeader<CR>', opts)
--- generate the function definition in source
-map('n', '<leader>cf', '<Cmd>CreateFuncDefInSource<CR>', opts)
--- generate the static variable definition in source
-map('n', '<leader>cv', '<Cmd>CreateStaticVarDefInSource<CR>', opts)
+-- generate the function definition or static variable definition in source
+map('n', '<leader>cf', '<Cmd>ImplementInSource<CR>', opts)
+-- generate the function definition or static variable definition in header
+map('n', '<leader>cv', '<Cmd>ImplementOutOfClass<CR>', opts)
 ```
-
-## Shortcoming👎
-
-- Unable to generate a function definition in the order of the declaration;
-- Unable to replace the type defined by `typedef`;
-- Unable to return specific values according to the different return types;
-- If the function definition already exists, it will still generate;
-- Unable to generate multiple function definitions at the same time in the view mode;
-
-> In addition, the code is very bad, and it may need to be reconstructed later.
 
 ## TODO🚀
 
