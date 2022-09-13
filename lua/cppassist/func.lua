@@ -59,18 +59,21 @@ end
 function M.GenerateVariableDefinition(funcstr)
 	local class = M.GetClassName()
 	class = string.gsub(class, "%s+", "")
-	local res = ""
+	local str_arr = {}
 	local index = 1
-	for word in string.gmatch(funcstr, "[a-zA-Z0-9&:_%*]+") do
-		if index == 3 then
-			res = res .. " " .. class .. "::" .. word
-		else
-			res = res .. " " .. word
-		end
+	for word in string.gmatch(funcstr, "[a-zA-Z0-9&:_<>%*]+") do
+		str_arr[index] = word
 		index = index + 1
 	end
+  local res = ""
+	if #str_arr == 2 then
+		res = str_arr[1] .. " " .. class .. "::" .. str_arr[2]
+	elseif #str_arr == 3 then
+		res = str_arr[1] .. " " .. str_arr[2] .. " " .. class .. "::" .. str_arr[3]
+	else
+		return ""
+	end
 	res = res .. ";"
-	res = string.sub(res, 2)
 	return res
 end
 
@@ -158,15 +161,15 @@ function M.ForamtDeclaration(funcstr)
 				end
 			end
 			funcstr = funcstr .. func_name .. func_param .. " " .. keywords .. bracket
-      -- Add constexpr
-      if M.constexpr then
-        funcstr = "constexpr " .. funcstr
-        M.constexpr = false
-      end
+			-- Add constexpr
+			if M.constexpr then
+				funcstr = "constexpr " .. funcstr
+				M.constexpr = false
+			end
 			-- Add template headers
 			if templatestr ~= "" then
 				funcstr = templatestr .. "\n" .. funcstr
-        M.templatestr = ""
+				M.templatestr = ""
 			end
 			return funcstr
 		else
