@@ -20,6 +20,7 @@ use {
 - It can recognize the simple return type;
 - It can recognize multi-line function declarations;
 - It can recognize class templates;
+- It can recognize function default parameters and remove them;
 - It can recognize the following keywords: const，explicit, static, override, final, virtual, friend, = 0, = default,
 = delete, noexcept, constexpr;
 

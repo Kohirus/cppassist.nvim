@@ -34,7 +34,7 @@ end
 -- return class name, return type, function name, function parameters, keywords
 function M.GetFuncDeclarationInfo(funcstr)
 	local start1, end1 = string.find(funcstr, "^([a-zA-Z0-9_&:%*]+)%s+")
-	local start2, end2 = string.find(funcstr, "%([a-zA-Z0-9_&:<>=%*,%s+]*%)")
+	local start2, end2 = string.find(funcstr, "%([a-zA-Z0-9_&:<>=%*'\"%.,%s+]*%)")
 	local return_type = ""
 	if start1 ~= nil then
 		return_type = string.sub(funcstr, start1, end1)
@@ -46,6 +46,8 @@ function M.GetFuncDeclarationInfo(funcstr)
 		func_name = string.sub(funcstr, 1, start2 - 1)
 	end
 	local func_param = string.sub(funcstr, start2, end2)
+  -- delete the default arguments
+  func_param = string.gsub(func_param, "%s*=%s*[a-zA-Z0-9'\"%.]+", "")
 	local keywords = string.sub(funcstr, end2 + 1)
 	local class = M.GetClassName()
 	class = string.gsub(class, "%s+", "")
@@ -121,7 +123,7 @@ function M.IdentifyKeywords(keywords)
 end
 
 function M.IsVariable(str)
-	local start = string.find(str, "%([a-zA-Z0-9_&:%<>*=,%s+]*%)")
+	local start = string.find(str, "%([a-zA-Z0-9_&:<>%*=,'%.\"%s+]*%)")
 	if start == nil then
 		return true
 	else
