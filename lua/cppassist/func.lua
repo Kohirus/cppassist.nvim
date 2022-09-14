@@ -3,7 +3,7 @@ local fn = vim.fn
 local M = {}
 
 local templatestr = ""
-local contexpr = false
+local constexpr = false
 
 -- Gets the function declaration or variable declaration
 -- at the cursor, ending with a semicolon
@@ -34,7 +34,7 @@ end
 -- return class name, return type, function name, function parameters, keywords
 function M.GetFuncDeclarationInfo(funcstr)
 	local start1, end1 = string.find(funcstr, "^([a-zA-Z0-9_&:%*]+)%s+")
-	local start2, end2 = string.find(funcstr, "%([a-zA-Z0-9_&:<>%*,%s+]*%)")
+	local start2, end2 = string.find(funcstr, "%([a-zA-Z0-9_&:<>=%*,%s+]*%)")
 	local return_type = ""
 	if start1 ~= nil then
 		return_type = string.sub(funcstr, start1, end1)
@@ -121,7 +121,7 @@ function M.IdentifyKeywords(keywords)
 end
 
 function M.IsVariable(str)
-	local start = string.find(str, "%([a-zA-Z0-9_&:%<>*,%s+]*%)")
+	local start = string.find(str, "%([a-zA-Z0-9_&:%<>*=,%s+]*%)")
 	if start == nil then
 		return true
 	else
