@@ -23,6 +23,7 @@ use {
 - It can recognize function default parameters and remove them;
 - It can recognize the following keywords: const，explicit, static, override, final, virtual, friend, = 0, = default,
 = delete, noexcept, constexpr;
+- It supports multiple functions at the same time in `Visual` mode
 
 > In my opinion, the inline keyword should be defined in the source file and not in the header file, 
 because this keyword needs to be told to the compiler, not the user, so it is not implemented here
@@ -30,8 +31,7 @@ because this keyword needs to be told to the compiler, not the user, so it is no
 ## Usage🔨
 
 Place the cursor on the line where the declaration is located, and press 
-the shortcut key to generate the corresponding definition. Be careful not 
-to place the cursor at the semicolon, it will cause an error!
+the shortcut key to generate the corresponding definition.
 
 If a function is defined on more than one line, place the cursor on the 
 starting line in the function definition!
@@ -44,6 +44,8 @@ local opts = { noremap = true, silent = true }
 map('n', '<A-o>', '<Cmd>SwitchSourceAndHeader<CR>', opts)
 -- generate the function definition or static variable definition in source
 map('n', '<leader>cf', '<Cmd>ImplementInSource<CR>', opts)
+-- generate the function definition or static variable definition in source in visual mode
+map('v', '<leader>cf', '<Cmd>lua require("cppassist").ImplementInSourceInVisualMode<CR>', opts)
 -- generate the function definition or static variable definition in header
 map('n', '<leader>cv', '<Cmd>ImplementOutOfClass<CR>', opts)
 ```
@@ -54,7 +56,7 @@ map('n', '<leader>cv', '<Cmd>ImplementOutOfClass<CR>', opts)
 - [x] generate the function definition in source
 - [x] generate the static variable in source
 - [ ] generate the Get()/Set() method for variable
-- [ ] generate the multi function definitions in the view mode
+- [x] generate the multi function definitions in the view mode
 
 ## Special Thanks🙏
 

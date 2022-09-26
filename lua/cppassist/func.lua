@@ -1,16 +1,62 @@
+---@diagnostic disable: unused-local
 local fn = vim.fn
 
 local M = {}
 
 local templatestr = ""
+local templatefuncstr = ""
 local constexpr = false
+local const = false
+
+-- Determine whether the current line is an annotation or an empty line
+function M.NeedIngore(ln)
+	local str = fn.getline(ln)
+	str = string.gsub(str, "^%s+", "", 1)
+	-- if it is an empty line
+	if str == "" or str == nil then
+		return true
+	else
+		local substr = string.sub(str, 1, 2)
+		-- if it has comments
+		if substr == "//" or substr == "/*" then
+			return true
+		end
+		-- if it has some keywords: typedef template class struct public private protected
+		if string.match(str, "^public%s+") ~= nil then
+			return true
+		elseif string.match(str, "^private%s+") ~= nil then
+			return true
+		elseif string.match(str, "^protected%s+") ~= nil then
+			return true
+		elseif string.match(str, "^class%s+") ~= nil then
+			return true
+		elseif string.match(str, "^struct%s+") ~= nil then
+			return true
+		elseif string.match(str, "^template%s*") ~= nil then
+			return true
+		elseif string.match(str, "^typedef%s+") ~= nil then
+			return true
+		end
+	end
+	return false
+end
 
 -- Gets the function declaration or variable declaration
 -- at the cursor, ending with a semicolon
 function M.GetCursorDeclaration()
 	local startline = fn.line(".")
-	local endline = fn.search(";")
+	local endline = fn.search(";", "cn", fn.line("$"))
 	local lines = fn.getline(startline, endline)
+	-- Check whether there is a template function definition at the beginning of the line
+	if startline ~= 1 then
+		local objline = startline - 1
+		M.templatefuncstr = fn.getline(objline)
+		M.templatefuncstr = string.gsub(M.templatefuncstr, "^%s+", "", 1)
+		local start = string.find(M.templatefuncstr, "template")
+		if start == nil then
+			M.templatefuncstr = ""
+		end
+	end
 	-- remove comments from each line
 	for index, curline in ipairs(lines) do
 		-- remove comments that begin with the '//'
@@ -27,14 +73,14 @@ function M.GetCursorDeclaration()
 	end
 	-- put a line break at the end of each line
 	local ln = fn.join(lines, "\n")
-	return ln
+	return ln, endline
 end
 
 -- Get information about a function, and then put it in a defined form
 -- return class name, return type, function name, function parameters, keywords
 function M.GetFuncDeclarationInfo(funcstr)
-	local start1, end1 = string.find(funcstr, "^([a-zA-Z0-9_&:%*]+)%s+")
-	local start2, end2 = string.find(funcstr, "%([a-zA-Z0-9_&:<>=%*'\"%.,%s+]*%)")
+	local start1, end1 = string.find(funcstr, "^([a-zA-Z0-9_&:<>%*]+)%s+")
+	local start2, end2 = string.find(funcstr, "%([a-zA-Z0-9_&:<>%[%]=%*'\"%.,%s+]*%)")
 	local return_type = ""
 	if start1 ~= nil then
 		return_type = string.sub(funcstr, start1, end1)
@@ -46,8 +92,8 @@ function M.GetFuncDeclarationInfo(funcstr)
 		func_name = string.sub(funcstr, 1, start2 - 1)
 	end
 	local func_param = string.sub(funcstr, start2, end2)
-  -- delete the default arguments
-  func_param = string.gsub(func_param, "%s*=%s*[a-zA-Z0-9'\"%.]+", "")
+	-- delete the default arguments
+	func_param = string.gsub(func_param, "%s*=%s*[a-zA-Z0-9'\"%.]+", "")
 	local keywords = string.sub(funcstr, end2 + 1)
 	local class = M.GetClassName()
 	class = string.gsub(class, "%s+", "")
@@ -63,11 +109,11 @@ function M.GenerateVariableDefinition(funcstr)
 	class = string.gsub(class, "%s+", "")
 	local str_arr = {}
 	local index = 1
-	for word in string.gmatch(funcstr, "[a-zA-Z0-9&:_<>%*]+") do
+	for word in string.gmatch(funcstr, "[a-zA-Z0-9&:_<>%[%]%*]+") do
 		str_arr[index] = word
 		index = index + 1
 	end
-  local res = ""
+	local res = ""
 	if #str_arr == 2 then
 		res = str_arr[1] .. " " .. class .. "::" .. str_arr[2]
 	elseif #str_arr == 3 then
@@ -123,7 +169,7 @@ function M.IdentifyKeywords(keywords)
 end
 
 function M.IsVariable(str)
-	local start = string.find(str, "%([a-zA-Z0-9_&:<>%*=,'%.\"%s+]*%)")
+	local start = string.find(str, "%([a-zA-Z0-9_&:<>%*=,'%.\"%[%]%s+]*%)")
 	if start == nil then
 		return true
 	else
@@ -163,14 +209,23 @@ function M.ForamtDeclaration(funcstr)
 				end
 			end
 			funcstr = funcstr .. func_name .. func_param .. " " .. keywords .. bracket
-			-- Add constexpr
+			-- Add const keyword
+			if M.const then
+				funcstr = "const " .. funcstr
+				M.const = false
+			end
+			-- Add constexpr keyword
 			if M.constexpr then
 				funcstr = "constexpr " .. funcstr
 				M.constexpr = false
 			end
 			-- Add template headers
-			if templatestr ~= "" then
-				funcstr = templatestr .. "\n" .. funcstr
+			-- Prefer to use function template instead of templates
+			if M.templatefuncstr ~= "" then
+				funcstr = M.templatefuncstr .. "\n" .. funcstr
+				M.templatefuncstr = ""
+			elseif M.templatestr ~= "" then
+				funcstr = M.templatestr .. "\n" .. funcstr
 				M.templatestr = ""
 			end
 			return funcstr
@@ -181,13 +236,14 @@ function M.ForamtDeclaration(funcstr)
 end
 
 function M.GetClassName()
-	local class = fn.search("class", "bn")
+	local class = fn.search("class", "bn", 1)
 	if class ~= 1 then
 		local template = class - 1
-		templatestr = fn.getline(template)
-		local start = string.find(templatestr, "template")
+		M.templatestr = fn.getline(template)
+		M.templatestr = string.gsub(M.templatestr, "%s+", "", 1)
+		local start = string.find(M.templatestr, "template")
 		if start == nil then
-			templatestr = ""
+			M.templatestr = ""
 		end
 	end
 	class = fn.getline(class)
@@ -207,7 +263,12 @@ function M.RemoveLeadingKeywords(funcstr)
 	funcstr = string.gsub(funcstr, "virtual%s+", "", 1)
 	funcstr = string.gsub(funcstr, "explicit%s+", "", 1)
 	funcstr = string.gsub(funcstr, "friend%s+", "", 1)
-	local res = string.find(funcstr, "constexpr")
+	local res = string.find(funcstr, "const")
+	if res ~= nil then
+		M.const = true
+		funcstr = string.gsub(funcstr, "const%s+", "", 1)
+	end
+	res = string.find(funcstr, "constexpr")
 	if res ~= nil then
 		M.constexpr = true
 		funcstr = string.gsub(funcstr, "constexpr%s+", "", 1)
