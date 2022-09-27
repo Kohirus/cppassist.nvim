@@ -17,7 +17,7 @@ function M.ImplementInSourceInVisualMode()
 				local funcstr, funcendline = func.GetCursorDeclaration()
 				if funcstr ~= "" then
 					funcstr = func.ForamtDeclaration(funcstr)
-					str = str .. funcstr
+					str = str .. funcstr .. " \n"
 				end
 				if funcendline ~= curline then
 					curline = funcendline

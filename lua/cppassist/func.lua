@@ -22,19 +22,19 @@ function M.NeedIngore(ln)
 			return true
 		end
 		-- if it has some keywords: typedef template class struct public private protected
-		if string.match(str, "^public%s+") ~= nil then
-			return true
-		elseif string.match(str, "^private%s+") ~= nil then
-			return true
-		elseif string.match(str, "^protected%s+") ~= nil then
-			return true
-		elseif string.match(str, "^class%s+") ~= nil then
-			return true
-		elseif string.match(str, "^struct%s+") ~= nil then
-			return true
-		elseif string.match(str, "^template%s*") ~= nil then
-			return true
-		elseif string.match(str, "^typedef%s+") ~= nil then
+		-- =0 =default =delete
+		if
+			string.match(str, "^public%s+") ~= nil
+			or string.match(str, "^private%s+") ~= nil
+			or string.match(str, "^protected%s+") ~= nil
+			or string.match(str, "^class%s+") ~= nil
+			or string.match(str, "^struct%s+") ~= nil
+			or string.match(str, "^template%s*") ~= nil
+			or string.match(str, "^typedef%s+") ~= nil
+			or string.match(str, "=%s*delete%s*;") ~= nil
+			or string.match(str, "=%s*default%s*;") ~= nil
+      or string.match(str, "=%s*0%s*;") ~= nil
+		then
 			return true
 		end
 	end
@@ -50,11 +50,11 @@ function M.GetCursorDeclaration()
 	-- Check whether there is a template function definition at the beginning of the line
 	if startline ~= 1 then
 		local objline = startline - 1
-		M.templatefuncstr = fn.getline(objline)
-		M.templatefuncstr = string.gsub(M.templatefuncstr, "^%s+", "", 1)
-		local start = string.find(M.templatefuncstr, "template")
+		templatefuncstr = fn.getline(objline)
+		templatefuncstr = string.gsub(templatefuncstr, "^%s+", "", 1)
+		local start = string.find(templatefuncstr, "template")
 		if start == nil then
-			M.templatefuncstr = ""
+			templatefuncstr = ""
 		end
 	end
 	-- remove comments from each line
@@ -210,23 +210,23 @@ function M.ForamtDeclaration(funcstr)
 			end
 			funcstr = funcstr .. func_name .. func_param .. " " .. keywords .. bracket
 			-- Add const keyword
-			if M.const then
+			if const then
 				funcstr = "const " .. funcstr
-				M.const = false
+				const = false
 			end
 			-- Add constexpr keyword
-			if M.constexpr then
+			if constexpr then
 				funcstr = "constexpr " .. funcstr
-				M.constexpr = false
+				constexpr = false
 			end
 			-- Add template headers
 			-- Prefer to use function template instead of templates
-			if M.templatefuncstr ~= "" then
-				funcstr = M.templatefuncstr .. "\n" .. funcstr
-				M.templatefuncstr = ""
-			elseif M.templatestr ~= "" then
-				funcstr = M.templatestr .. "\n" .. funcstr
-				M.templatestr = ""
+			if templatefuncstr ~= "" then
+				funcstr = templatefuncstr .. "\n" .. funcstr
+				templatefuncstr = ""
+			elseif templatestr ~= "" then
+				funcstr = templatestr .. "\n" .. funcstr
+				templatestr = ""
 			end
 			return funcstr
 		else
@@ -236,20 +236,20 @@ function M.ForamtDeclaration(funcstr)
 end
 
 function M.GetClassName()
-	local class = fn.search("class", "bn", 1)
+	local class = fn.search("\\Cclass", "bn", 1)
 	if class ~= 1 then
 		local template = class - 1
-		M.templatestr = fn.getline(template)
-		M.templatestr = string.gsub(M.templatestr, "%s+", "", 1)
-		local start = string.find(M.templatestr, "template")
+		templatestr = fn.getline(template)
+		templatestr = string.gsub(templatestr, "%s+", "", 1)
+		local start = string.find(templatestr, "template")
 		if start == nil then
-			M.templatestr = ""
+			templatestr = ""
 		end
 	end
 	class = fn.getline(class)
 	if string.len(class) > 0 then
 		class = fn.matchlist(class, "class\\s\\+\\([a-zA-Z_]\\+\\)")[1]
-		class = string.gsub(class, "class%s+", "", 1)
+		class = string.gsub(class, "^class%s+", "", 1)
 		return class
 	else
 		return ""
@@ -265,12 +265,12 @@ function M.RemoveLeadingKeywords(funcstr)
 	funcstr = string.gsub(funcstr, "friend%s+", "", 1)
 	local res = string.find(funcstr, "const")
 	if res ~= nil then
-		M.const = true
+		const = true
 		funcstr = string.gsub(funcstr, "const%s+", "", 1)
 	end
 	res = string.find(funcstr, "constexpr")
 	if res ~= nil then
-		M.constexpr = true
+		constexpr = true
 		funcstr = string.gsub(funcstr, "constexpr%s+", "", 1)
 	end
 	return funcstr
