@@ -10,9 +10,13 @@ function M.ImplementInSourceInVisualMode()
 		local startline = vim.fn.line("'<")
 		local endline = vim.fn.line("'>")
 		local str = ""
-		for curline = startline, endline, 1 do
+    local curline = startline
+    while curline <= endline do
 			vim.fn.cursor(curline, 1)
-			local ignore = func.NeedIngore(curline)
+			local ignore, new_line = func.NeedIngore(curline)
+      if ignore == true and new_line ~= nil then
+        curline = new_line
+      end
 			if ignore == false then
 				local funcstr, funcendline = func.GetCursorDeclaration()
 				if funcstr ~= "" then
@@ -23,7 +27,8 @@ function M.ImplementInSourceInVisualMode()
 					curline = funcendline
 				end
 			end
-		end
+      curline = curline + 1
+    end
 		if str ~= "" then
 			utils.OpenFile(file)
 			utils.AppendFile(file, str)

@@ -18,8 +18,16 @@ function M.NeedIngore(ln)
 	else
 		local substr = string.sub(str, 1, 2)
 		-- if it has comments
-		if substr == "//" or substr == "/*" then
+		if substr == "//" then
 			return true
+    -- Multiline comment
+		elseif substr == "/*" then
+      local line = ln
+			repeat
+			  line = line + 1
+				local cur = fn.getline(line)
+			until string.match(cur, "%*/%s*$") ~= nil
+      return true, line
 		end
 		-- if it has some keywords: typedef template class struct public private protected
 		-- =0 =default =delete
@@ -33,7 +41,7 @@ function M.NeedIngore(ln)
 			or string.match(str, "^typedef%s+") ~= nil
 			or string.match(str, "=%s*delete%s*;") ~= nil
 			or string.match(str, "=%s*default%s*;") ~= nil
-      or string.match(str, "=%s*0%s*;") ~= nil
+			or string.match(str, "=%s*0%s*;") ~= nil
 		then
 			return true
 		end
@@ -259,19 +267,19 @@ end
 -- Remove the leading keyword, such as:
 -- virtual, static, explicit, friend
 function M.RemoveLeadingKeywords(funcstr)
-	funcstr = string.gsub(funcstr, "static%s+", "", 1)
-	funcstr = string.gsub(funcstr, "virtual%s+", "", 1)
-	funcstr = string.gsub(funcstr, "explicit%s+", "", 1)
-	funcstr = string.gsub(funcstr, "friend%s+", "", 1)
-	local res = string.find(funcstr, "const")
+	funcstr = string.gsub(funcstr, "^static%s+", "", 1)
+	funcstr = string.gsub(funcstr, "^virtual%s+", "", 1)
+	funcstr = string.gsub(funcstr, "^explicit%s+", "", 1)
+	funcstr = string.gsub(funcstr, "^friend%s+", "", 1)
+	local res = string.find(funcstr, "^const%s+")
 	if res ~= nil then
 		const = true
-		funcstr = string.gsub(funcstr, "const%s+", "", 1)
+		funcstr = string.gsub(funcstr, "^const%s+", "", 1)
 	end
-	res = string.find(funcstr, "constexpr")
+	res = string.find(funcstr, "^constexpr%s+")
 	if res ~= nil then
 		constexpr = true
-		funcstr = string.gsub(funcstr, "constexpr%s+", "", 1)
+		funcstr = string.gsub(funcstr, "^constexpr%s+", "", 1)
 	end
 	return funcstr
 end
