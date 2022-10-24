@@ -29,14 +29,13 @@ function M.NeedIngore(ln)
 			until string.match(cur, "%*/%s*$") ~= nil
       return true, line
 		end
-		-- if it has some keywords: typedef template class struct public private protected
+		-- if it has some keywords: typedef template class public private protected
 		-- =0 =default =delete
 		if
-			string.match(str, "^public%s+") ~= nil
-			or string.match(str, "^private%s+") ~= nil
-			or string.match(str, "^protected%s+") ~= nil
+			string.match(str, "^public%s*") ~= nil
+			or string.match(str, "^private%s*") ~= nil
+			or string.match(str, "^protected%s*") ~= nil
 			or string.match(str, "^class%s+") ~= nil
-			or string.match(str, "^struct%s+") ~= nil
 			or string.match(str, "^template%s*") ~= nil
 			or string.match(str, "^typedef%s+") ~= nil
 			or string.match(str, "=%s*delete%s*;") ~= nil
@@ -265,7 +264,7 @@ function M.GetClassName()
 end
 
 -- Remove the leading keyword, such as:
--- virtual, static, explicit, friend
+-- virtual, static, explicit, friend, constexpr, const, struct
 function M.RemoveLeadingKeywords(funcstr)
 	funcstr = string.gsub(funcstr, "^static%s+", "", 1)
 	funcstr = string.gsub(funcstr, "^virtual%s+", "", 1)

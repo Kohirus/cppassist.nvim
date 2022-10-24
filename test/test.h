@@ -1,17 +1,22 @@
 
 #include <string>
 
-class test
-{
+struct Msg {
+    std::string str;
+    int         id;
+};
+
+class test {
 public:
     test();
-    test(test &&) = default;
-    test(const test &) = default;
-    test &operator=(test &&) = default;
-    test &operator=(const test &) = default;
+    test(test&&)                 = default;
+    test(const test&)            = default;
+    test& operator=(test&&)      = default;
+    test& operator=(const test&) = default;
     ~test();
 
-    /* 
+private:
+    /*
      * comments
      * comments
      */
@@ -22,4 +27,8 @@ public:
     const char* stre(int a);
 
     void funnn(size_t a);
+
+    struct Msg funcc();
+
+    void test_func(struct Msg msg);
 };
