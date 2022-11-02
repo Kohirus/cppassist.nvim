@@ -8,6 +8,32 @@ local templatefuncstr = ""
 local constexpr = false
 local const = false
 
+function M.GenerateInViewMode()
+	local startline = fn.line("'<")
+	local endline = fn.line("'>")
+	local str = ""
+	local curline = startline
+	while curline <= endline do
+		fn.cursor(curline, 1)
+		local ignore, new_line = M.NeedIngore(curline)
+		if ignore == true and new_line ~= nil then
+			curline = new_line
+		end
+		if ignore == false then
+			local funcstr, funcendline = M.GetCursorDeclaration()
+			if funcstr ~= "" then
+				funcstr = M.ForamtDeclaration(funcstr)
+				str = str .. funcstr .. " \n"
+			end
+			if funcendline ~= curline then
+				curline = funcendline
+			end
+		end
+		curline = curline + 1
+	end
+	return str
+end
+
 -- Determine whether the current line is an annotation or an empty line
 function M.NeedIngore(ln)
 	local str = fn.getline(ln)
@@ -20,14 +46,14 @@ function M.NeedIngore(ln)
 		-- if it has comments
 		if substr == "//" then
 			return true
-    -- Multiline comment
+		-- Multiline comment
 		elseif substr == "/*" then
-      local line = ln
+			local line = ln
 			repeat
-			  line = line + 1
+				line = line + 1
 				local cur = fn.getline(line)
 			until string.match(cur, "%*/%s*$") ~= nil
-      return true, line
+			return true, line
 		end
 		-- if it has some keywords: typedef template class public private protected
 		-- =0 =default =delete

@@ -1,5 +1,4 @@
 local utils = require("cppassist.utils")
-local search = require("cppassist.search")
 local func = require("cppassist.func")
 local header = require("cppassist.header")
 local config = require("cppassist.config")
@@ -9,53 +8,38 @@ local M = {}
 local opts
 
 function M.setup(custom_opts)
-  config.set_options(custom_opts)
-  opts = require("cppassist.config").options
+	config.set_options(custom_opts)
+	opts = require("cppassist.config").options
 end
 
 function M.ImplementInSourceInVisualMode()
-	local file = search.SearchSourceFile()
-	if file ~= "" then
-		local startline = vim.fn.line("'<")
-		local endline = vim.fn.line("'>")
-		local str = ""
-		local curline = startline
-		while curline <= endline do
-			vim.fn.cursor(curline, 1)
-			local ignore, new_line = func.NeedIngore(curline)
-			if ignore == true and new_line ~= nil then
-				curline = new_line
-			end
-			if ignore == false then
-				local funcstr, funcendline = func.GetCursorDeclaration()
-				if funcstr ~= "" then
-					funcstr = func.ForamtDeclaration(funcstr)
-					str = str .. funcstr .. " \n"
-				end
-				if funcendline ~= curline then
-					curline = funcendline
-				end
-			end
-			curline = curline + 1
-		end
+	local files = utils.SearchPeerFile(opts)
+	if files ~= nil then
+		local str = func.GenerateInViewMode()
 		if str ~= "" then
-			utils.OpenFile(file)
-			utils.AppendFile(file, str)
+			local res = utils.DisplayOptionalList(files, "source file")
+			if res == true then
+				utils.AppendFile(str)
+			end
 		end
+	else
+		print("Couldn't find the source file!")
 	end
 end
 
 function M.ImplementInSource()
-	local file = search.SearchSourceFile()
-	if file ~= "" then
+	local files = utils.SearchPeerFile(opts)
+	if files ~= nil then
 		local funcstr = func.GetCursorDeclaration()
 		if funcstr ~= "" then
 			funcstr = func.ForamtDeclaration(funcstr)
-			utils.OpenFile(file)
-			utils.AppendFile(file, funcstr)
+			local res = utils.DisplayOptionalList(files, "source file")
+			if res == true then
+				utils.AppendFile(funcstr)
+			end
 		end
 	else
-		print("Not find the source file!")
+		print("Couldn't find the source file!")
 	end
 end
 
@@ -63,17 +47,13 @@ function M.ImplementOutOfClass()
 	local funcstr = func.GetCursorDeclaration()
 	if funcstr ~= "" then
 		funcstr = func.ForamtDeclaration(funcstr)
-		utils.AppendFile("", funcstr)
+		utils.AppendFile(funcstr)
 	end
 end
 
 function M.SwitchSourceAndHeader()
-	local file = search.SearchSourceFile()
-	if file ~= "" then
-		utils.OpenFile(file)
-	else
-		print("Not find the source file!")
-	end
+	local files = utils.SearchPeerFile(opts)
+	utils.DisplayOptionalList(files, "source file or header file!")
 end
 
 function M.GotoHeaderFile()

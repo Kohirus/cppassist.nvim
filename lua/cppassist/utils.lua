@@ -9,12 +9,15 @@ local fd_exe = vim.g.cppassist_fd_binary_name
 -- @param list The table of ptional list
 -- @param obj The target file to be searched
 -- @param If there is only one in table, it will be displayed directly
+-- @param Text that need to append the target file
+-- @return If find the target file, return true
 function M.DisplayOptionalList(list, obj)
 	if #list == 0 then
 		print("Couldn't find " .. obj)
 	else
 		if #list == 1 then
 			M.OpenFile(list[1])
+			return true
 		else
 			print("Searching for " .. obj .. " ...")
 			for idx, val in ipairs(list) do
@@ -22,20 +25,21 @@ function M.DisplayOptionalList(list, obj)
 			end
 			print("0 : cancel")
 			local idx = fn.input("Select the file you want: ")
-			if #idx == 0 then
-				return
-			end
-			idx = tonumber(idx)
-			if idx > #list then
-				print("\nInvalid index : " .. idx)
-				return
-			elseif idx == 0 then
-				return
-			else
-				M.OpenFile(list[idx])
+			if #idx ~= 0 then
+				idx = tonumber(idx)
+				if idx > #list then
+          print(" ")
+					print("Invalid index : " .. idx)
+				elseif idx == 0 then
+					return false
+				else
+					M.OpenFile(list[idx])
+          return true
+				end
 			end
 		end
 	end
+	return false
 end
 
 -- Show fd error
@@ -61,7 +65,7 @@ function M.SearchFile(flags, file_name, exclude_dirs, include_dirs)
 
 	local results = {}
 	for _, idir in ipairs(include_dirs) do
-		local fd_cmd = fd_exe .. " -L " .. flags .. exclude_cmd .. file_name .. " " .. idir
+		local fd_cmd = fd_exe .. " " .. flags .. exclude_cmd .. file_name .. " " .. idir
 		results = fn.systemlist(fd_cmd)
 		if vim.v.shell_error ~= 0 then
 			M.ShowFdError(results)
@@ -72,6 +76,41 @@ function M.SearchFile(flags, file_name, exclude_dirs, include_dirs)
 		end
 	end
 	return results
+end
+
+-- If current file is a header file, it will return the table of source files.
+-- And if current file is a soruce file, it will return the table of header files.
+function M.SearchPeerFile(options)
+	local current_file = vim.api.nvim_eval('expand("%:p")')
+	local _, filename, extension = M.SpiltFilename(current_file)
+	local ext_cmd = M.ExtensionCmd(extension)
+	if ext_cmd ~= "" then
+		local exclude_dirs = options.switch_sh.exclude_dirs
+		local include_dirs = options.switch_sh.include_dirs
+		local flags = options.switch_sh.search_flags .. ext_cmd
+		local results = M.SearchFile(flags, filename, exclude_dirs, include_dirs)
+		return results
+	end
+end
+
+-- If `extension` is a source file extension, it will return the string of cmd about header file extension
+-- And if it is a header file extension, it will return the string of cmd about source file extension
+function M.ExtensionCmd(extension)
+	if string.len(extension) == 0 then
+		print("Invalid filetype!")
+		return nil
+	else
+		local res = nil
+		local firstch = string.sub(extension, 1, 1)
+		if firstch == "h" then
+			res = " -e cpp -e cxx -e c -e cc "
+		elseif firstch == "c" then
+			res = " -e h -e hpp -e hxx "
+		else
+			print("Invalid filetype!")
+		end
+		return res
+	end
 end
 
 -- Separate the path, file name, and file suffix from the full file name
@@ -100,11 +139,6 @@ function M.SplitString(inputstr, sep)
 	return t
 end
 
-function M.SaveCurFile()
-	local command_string = "w"
-	cmd(command_string)
-end
-
 function M.OpenFile(file)
 	if file ~= "" then
 		local command_string = "edit " .. file
@@ -113,15 +147,13 @@ function M.OpenFile(file)
 end
 
 -- Append the target string to the end of the specified file
-function M.AppendFile(file, str)
-	M.OpenFile(file)
+function M.AppendFile(str)
 	if str ~= "" then
 		local t = M.SplitString(str, "\n")
+    fn.append(fn.line("$"), " ")
 		for _, j in ipairs(t) do
 			fn.append(fn.line("$"), j)
 		end
-		fn.append(fn.line("$"), " ")
-		M.SaveCurFile()
 	end
 end
 
