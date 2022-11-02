@@ -29,7 +29,7 @@ require('cppassist').setup {
   -- For `SwitchSourceAndHeader`, `ImplementInSource` and `ImplementOutOfClass` command
   switch_sh = {
     -- Search for target files in the following directories
-		include_dirs = { ".", ".." },
+    include_dirs = { ".", ".." },
     -- Exclude the following directories when searching for target files
     exclude_dirs = {},
     -- If you want other flags, see `man fd`
@@ -50,11 +50,11 @@ require('cppassist').setup {
     }
   },
   -- For `GotoHeaderFile` command
-	goto_header = {
-		include_dirs = { ".", "..", "/usr/include", "/usr/local/include", "~" },
-		exclude_dirs = {},
-		search_flags = "-tf -s",
-	},
+  goto_header = {
+    include_dirs = { ".", "..", "/usr/include", "/usr/local/include", "~" },
+    exclude_dirs = {},
+    search_flags = "-tf -s",
+  },
 }
 ```
 
