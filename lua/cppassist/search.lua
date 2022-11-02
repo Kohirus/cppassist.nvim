@@ -1,5 +1,4 @@
 local api = vim.api
-local fn = vim.fn
 local scan = require("plenary.scandir")
 local utils = require("cppassist.utils")
 

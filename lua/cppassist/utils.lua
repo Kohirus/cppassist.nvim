@@ -3,6 +3,77 @@ local cmd = vim.cmd
 
 local M = {}
 
+local fd_exe = vim.g.cppassist_fd_binary_name
+
+-- Display optional list in the command area
+-- @param list The table of ptional list
+-- @param obj The target file to be searched
+-- @param If there is only one in table, it will be displayed directly
+function M.DisplayOptionalList(list, obj)
+	if #list == 0 then
+		print("Couldn't find " .. obj)
+	else
+		if #list == 1 then
+			M.OpenFile(list[1])
+		else
+			print("Searching for " .. obj .. " ...")
+			for idx, val in ipairs(list) do
+				print(idx, ": " .. val)
+			end
+			print("0 : cancel")
+			local idx = fn.input("Select the file you want: ")
+			if #idx == 0 then
+				return
+			end
+			idx = tonumber(idx)
+			if idx > #list then
+				print("\nInvalid index : " .. idx)
+				return
+			elseif idx == 0 then
+				return
+			else
+				M.OpenFile(list[idx])
+			end
+		end
+	end
+end
+
+-- Show fd error
+function M.ShowFdError(error)
+	print("Failed to search file with fd:")
+	for _, val in ipairs(error) do
+		print(val)
+	end
+end
+
+-- Use fd to search object file
+-- @param flags The flags when using fd
+-- @param file_name The name of target file to be searched
+-- @param exclude_dirs The table of directories that needs to be excluded when searching for files
+-- @param include_dirs The table of directories that needs to be included when searching for files
+-- @return The table of the target files
+-- @remarks The include_dirs has priority, if found in the first directory, it will return immediately
+function M.SearchFile(flags, file_name, exclude_dirs, include_dirs)
+	local exclude_cmd = " "
+	for _, edir in ipairs(exclude_dirs) do
+		exclude_cmd = exclude_cmd .. "--exclude " .. edir .. " "
+	end
+
+	local results = {}
+	for _, idir in ipairs(include_dirs) do
+		local fd_cmd = fd_exe .. " -L " .. flags .. exclude_cmd .. file_name .. " " .. idir
+		results = fn.systemlist(fd_cmd)
+		if vim.v.shell_error ~= 0 then
+			M.ShowFdError(results)
+			return {}
+		end
+		if #results ~= 0 then
+			break
+		end
+	end
+	return results
+end
+
 -- Separate the path, file name, and file suffix from the full file name
 -- @param file: the full file name
 -- @return table of information about filename
@@ -50,65 +121,8 @@ function M.AppendFile(file, str)
 			fn.append(fn.line("$"), j)
 		end
 		fn.append(fn.line("$"), " ")
-    M.SaveCurFile()
+		M.SaveCurFile()
 	end
-end
-
-function M.GetCursorDeclare(isFunc)
-	local startline = fn.line(".")
-	local endline = fn.search(";")
-	local lines = fn.getline(startline, endline)
-	local ln = fn.join(lines, "\n")
-	ln = string.gsub(ln, "^%s+", "", 1)
-	if isFunc then
-		ln = string.gsub(ln, "virtual%s+", "", 1)
-	else
-		ln = string.gsub(ln, "static%s+", "", 1)
-	end
-	ln = string.gsub(ln, ";", "", 1)
-
-	local class = fn.search("class", "bn")
-	class = fn.getline(class)
-	if string.len(class) > 0 then
-		class = fn.matchlist(class, "class\\s\\+\\([a-zA-Z_]\\+\\)")[1]
-		class = string.gsub(class, "class%s+", "", 1)
-		local obj = "\\1" .. class .. "::\\2"
-		local fname = fn.substitute(ln, "\\([a-zA-Z_%*]\\+\\s\\+\\)*\\(.*\\)", obj, "")
-		ln = fname
-	end
-
-	return ln
-end
-
-function M.GeneratreStaticVarUnderCursor()
-	local ln = M.GetCursorDeclare(false)
-	-- local data_type = string.match(ln, "([a-zA-Z_%*]+)%s+")
-	-- ln = ln .. " = " .. data_type .. "();\n"
-	ln = ln .. ";\n"
-	return ln
-end
-
-function M.GenerateFuncUnderCursor()
-	local ln = M.GetCursorDeclare(true)
-	local start, _ = string.find(ln, "[%(].*[%)]")
-	local sub = string.sub(ln, 1, start)
-	local data_type = string.match(sub, "([a-zA-Z_%*]+)%s+")
-	-- Constructor/Destructor
-	if data_type == nil then
-		ln = ln .. " {\n}\n"
-	else
-		local pointer, _ = string.find(data_type, "%*")
-		-- return pointer
-		if pointer ~= nil then
-			ln = ln .. " {\n\t return NULL;\n}\n"
-		-- return void
-		elseif data_type == "void" then
-			ln = ln .. " {\n}\n"
-		else
-			ln = ln .. " {\n\treturn " .. data_type .. "();\n}\n"
-		end
-	end
-	return ln
 end
 
 return M

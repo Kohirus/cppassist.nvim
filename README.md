@@ -8,8 +8,29 @@ A Neovim plugin that can do sometings like VAssistX.
 use {
   'tuilk/cppassist.nvim',
   opt = true,
-  ft = { "h", "cpp", "hpp", "c", "cc" },
-  requires = { {'nvim-lua/plenary.nvim'} }
+  ft = { "h", "cpp", "hpp", "c", "cc", "cxx" },
+  config = function()
+    require("cppassist").setup()
+  end,
+}
+```
+
+## Dependency💻
+
+Now this plugin depends on `fd` instead of `plenary.nvim`. So please make sure 
+the `fd` has been installed in your system.
+
+## Configuration🧱
+
+**Default configuration**
+
+```lua
+require('cppassist').setup {
+	goto_header = {
+		include_dirs = { ".", "..", "/usr/include", "/usr/local/include", "~" },
+		exclude_dirs = {},
+		search_flags = "-tf -s",
+	},
 }
 ```
 
@@ -24,6 +45,7 @@ use {
 - It can recognize the following keywords: const，explicit, static, override, final, virtual, friend, = 0, = default,
 = delete, noexcept, constexpr;
 - It supports multiple functions at the same time in `Visual` mode
+- **Now, it Supports the jump of the header file**
 
 > In my opinion, the inline keyword should be defined in the source file and not in the header file, 
 because this keyword needs to be told to the compiler, not the user, so it is not implemented here
@@ -35,6 +57,10 @@ the shortcut key to generate the corresponding definition.
 
 If a function is defined on more than one line, place the cursor on the 
 starting line in the function definition!
+
+If you want to jump to the specified header file, place the cursor on the 
+`#include` line. If there are multiple matches at the same time, there will 
+be a optional list for selection.
 
 ```lua
 local map = vim.api.nvim_set_keymap
@@ -48,6 +74,8 @@ map('n', '<leader>cf', '<Cmd>ImplementInSource<CR>', opts)
 map('v', '<leader>cf', '<Cmd>lua require("cppassist").ImplementInSourceInVisualMode<CR>', opts)
 -- generate the function definition or static variable definition in header
 map('n', '<leader>cv', '<Cmd>ImplementOutOfClass<CR>', opts)
+-- goto the header file
+map('n', '<leader>gh', '<Cmd>GotoHeaderFile<CR>', opts)
 ```
 
 ## TODO🚀
@@ -57,7 +85,12 @@ map('n', '<leader>cv', '<Cmd>ImplementOutOfClass<CR>', opts)
 - [x] generate the static variable in source
 - [ ] generate the Get()/Set() method for variable
 - [x] generate the multi function definitions in the view mode
+- [x] goto the header file
 
 ## Special Thanks🙏
 
 - [ouroboros.nvim](https://github.com/jakemason/ouroboros.nvim): quickly switching between header and implementation files
+
+## Ideas💡
+
+If you have a better idea, please tell me with email: kohiurs@foxmail.com

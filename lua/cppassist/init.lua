@@ -1,8 +1,17 @@
 local utils = require("cppassist.utils")
 local search = require("cppassist.search")
 local func = require("cppassist.func")
+local header = require("cppassist.header")
+local config = require("cppassist.config")
 
 local M = {}
+
+local opts
+
+function M.setup(custom_opts)
+  config.set_options(custom_opts)
+  opts = require("cppassist.config").options
+end
 
 function M.ImplementInSourceInVisualMode()
 	local file = search.SearchSourceFile()
@@ -10,13 +19,13 @@ function M.ImplementInSourceInVisualMode()
 		local startline = vim.fn.line("'<")
 		local endline = vim.fn.line("'>")
 		local str = ""
-    local curline = startline
-    while curline <= endline do
+		local curline = startline
+		while curline <= endline do
 			vim.fn.cursor(curline, 1)
 			local ignore, new_line = func.NeedIngore(curline)
-      if ignore == true and new_line ~= nil then
-        curline = new_line
-      end
+			if ignore == true and new_line ~= nil then
+				curline = new_line
+			end
 			if ignore == false then
 				local funcstr, funcendline = func.GetCursorDeclaration()
 				if funcstr ~= "" then
@@ -27,8 +36,8 @@ function M.ImplementInSourceInVisualMode()
 					curline = funcendline
 				end
 			end
-      curline = curline + 1
-    end
+			curline = curline + 1
+		end
 		if str ~= "" then
 			utils.OpenFile(file)
 			utils.AppendFile(file, str)
@@ -65,6 +74,10 @@ function M.SwitchSourceAndHeader()
 	else
 		print("Not find the source file!")
 	end
+end
+
+function M.GotoHeaderFile()
+	header.GotoHeaderFile(opts)
 end
 
 return M
