@@ -33,4 +33,11 @@ private:
     struct Msg funcc();
 
     void test_func(struct Msg msg);
+
+    int test1();
+    bool test2();
+    char test3();
+    int* test4();
+    double test6();
+    void test7();
 };

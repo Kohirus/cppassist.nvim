@@ -8,7 +8,7 @@ local templatefuncstr = ""
 local constexpr = false
 local const = false
 
-function M.GenerateInViewMode()
+function M.GenerateInViewMode(opts)
 	local startline = fn.line("'<")
 	local endline = fn.line("'>")
 	local str = ""
@@ -22,7 +22,7 @@ function M.GenerateInViewMode()
 		if ignore == false then
 			local funcstr, funcendline = M.GetCursorDeclaration()
 			if funcstr ~= "" then
-				funcstr = M.ForamtDeclaration(funcstr)
+				funcstr = M.ForamtDeclaration(funcstr, opts)
 				str = str .. funcstr .. " \n"
 			end
 			if funcendline ~= curline then
@@ -159,7 +159,7 @@ function M.GenerateVariableDefinition(funcstr)
 end
 
 -- Determine the value to return based on the different return types
-function M.IdentifyReturnType(return_type)
+function M.IdentifyReturnType(return_type, opts)
 	local returnstr = ""
 	-- Constructor/Destructor
 	if return_type == "" then
@@ -168,12 +168,24 @@ function M.IdentifyReturnType(return_type)
 		local pointer, _ = string.find(return_type, "%*")
 		-- return pointer
 		if pointer ~= nil then
-			returnstr = returnstr .. " {\n\t return NULL;\n}\n"
+			returnstr = returnstr .. " {\n\t return " .. opts.switch_sh.return_type.pointer .. ";\n}\n"
 		-- return void
 		elseif return_type == "void" then
 			returnstr = returnstr .. " {\n \n}\n"
 		elseif return_type == "bool" then
-			returnstr = returnstr .. " {\n\treturn false;\n}\n"
+			returnstr = returnstr .. " {\n\treturn " .. opts.switch_sh.return_type.bool .. ";\n}\n"
+		elseif string.find(return_type, 'int', 1, true) ~= nil then
+			returnstr = returnstr .. " {\n\treturn " .. opts.switch_sh.return_type.int .. ";\n}\n"
+		elseif string.find(return_type, 'short', 1, true) ~= nil then
+			returnstr = returnstr .. " {\n\treturn " .. opts.switch_sh.return_type.short .. ";\n}\n"
+		elseif string.find(return_type, 'long', 1, true) ~= nil then
+			returnstr = returnstr .. " {\n\treturn " .. opts.switch_sh.return_type.long .. ";\n}\n"
+		elseif string.find(return_type, 'char', 1, true) ~= nil then
+			returnstr = returnstr .. " {\n\treturn " .. opts.switch_sh.return_type.char .. ";\n}\n"
+		elseif string.find(return_type, 'double', 1, true) ~= nil then
+			returnstr = returnstr .. " {\n\treturn " .. opts.switch_sh.return_type.double .. ";\n}\n"
+		elseif string.find(return_type, 'float', 1, true) ~= nil then
+			returnstr = returnstr .. " {\n\treturn " .. opts.switch_sh.return_type.float .. ";\n}\n"
 		else
 			returnstr = returnstr .. " {\n\treturn " .. return_type .. "();\n}\n"
 		end
@@ -212,7 +224,7 @@ end
 
 -- Format function declarations to remove leading
 -- keywords, leading Spaces, and trailing semicolons
-function M.ForamtDeclaration(funcstr)
+function M.ForamtDeclaration(funcstr, opts)
 	funcstr = string.gsub(funcstr, "^%s+", "", 1)
 	funcstr = string.gsub(funcstr, ";", " ", 1)
 	if M.IsVariable(funcstr) then
@@ -231,7 +243,7 @@ function M.ForamtDeclaration(funcstr)
 		local need = true
 		need, keywords = M.IdentifyKeywords(keywords)
 		if need then
-			local bracket = M.IdentifyReturnType(return_type)
+			local bracket = M.IdentifyReturnType(return_type, opts)
 			if class == "" then
 				funcstr = return_type .. " "
 			else

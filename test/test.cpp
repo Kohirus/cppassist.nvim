@@ -18,3 +18,28 @@ const char* test::stre(int a) {
 
 void test::funnn(size_t a) {
 }
+ 
+int test::test1()  {
+	return 0;
+}
+ 
+bool test::test2()  {
+	return true;
+}
+ 
+char test::test3()  {
+	return a;
+}
+ 
+int* test::test4()  {
+	 return nullptr;
+}
+ 
+double test::test6()  {
+	return 2.0;
+}
+ 
+void test::test7()  {
+ 
+}
+ 

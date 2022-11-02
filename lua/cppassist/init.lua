@@ -15,7 +15,7 @@ end
 function M.ImplementInSourceInVisualMode()
 	local files = utils.SearchPeerFile(opts)
 	if files ~= nil then
-		local str = func.GenerateInViewMode()
+		local str = func.GenerateInViewMode(opts)
 		if str ~= "" then
 			local res = utils.DisplayOptionalList(files, "source file")
 			if res == true then
@@ -32,7 +32,7 @@ function M.ImplementInSource()
 	if files ~= nil then
 		local funcstr = func.GetCursorDeclaration()
 		if funcstr ~= "" then
-			funcstr = func.ForamtDeclaration(funcstr)
+			funcstr = func.ForamtDeclaration(funcstr, opts)
 			local res = utils.DisplayOptionalList(files, "source file")
 			if res == true then
 				utils.AppendFile(funcstr)
@@ -46,7 +46,7 @@ end
 function M.ImplementOutOfClass()
 	local funcstr = func.GetCursorDeclaration()
 	if funcstr ~= "" then
-		funcstr = func.ForamtDeclaration(funcstr)
+		funcstr = func.ForamtDeclaration(funcstr, opts)
 		utils.AppendFile(funcstr)
 	end
 end

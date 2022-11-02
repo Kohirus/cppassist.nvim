@@ -26,6 +26,30 @@ the `fd` has been installed in your system.
 
 ```lua
 require('cppassist').setup {
+  -- For `SwitchSourceAndHeader`, `ImplementInSource` and `ImplementOutOfClass` command
+  switch_sh = {
+    -- Search for target files in the following directories
+		include_dirs = { ".", ".." },
+    -- Exclude the following directories when searching for target files
+    exclude_dirs = {},
+    -- If you want other flags, see `man fd`
+    -- -t: This option can be specified more than once to include multiple file types.
+    -- -s: Perform a case-sensitive search.
+    -- -L: Using this flag, symbolic links are also traversed.
+    search_flags = "-tf -s -L",
+    -- If the return type contains the following keywords, the value of the right side will be used in the return statement
+    return_type = {
+      int = "0",
+      short = "0",
+      long = "0",
+      char = "0",
+      double = "0.0",
+      float = "0.0",
+      bool = "false",
+      pointer = "nullptr",
+    }
+  },
+  -- For `GotoHeaderFile` command
 	goto_header = {
 		include_dirs = { ".", "..", "/usr/include", "/usr/local/include", "~" },
 		exclude_dirs = {},
@@ -44,8 +68,10 @@ require('cppassist').setup {
 - It can recognize function default parameters and remove them;
 - It can recognize the following keywords: const，explicit, static, override, final, virtual, friend, = 0, = default,
 = delete, noexcept, constexpr;
-- It supports multiple functions at the same time in `Visual` mode
-- **Now, it Supports the jump of the header file**
+- It supports multiple functions at the same time in `Visual` mode;
+- It supports the custom return value of the basic data type;
+- **If there are multiple matching at the same time, it will display the optional list**;
+- **Now, it Supports the jump of the header file**;
 
 > In my opinion, the inline keyword should be defined in the source file and not in the header file, 
 because this keyword needs to be told to the compiler, not the user, so it is not implemented here
