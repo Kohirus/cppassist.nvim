@@ -11,7 +11,7 @@ function M.GetHeaderName(line)
 	if exist_inc ~= nil then
 		local idx_start, idx_end = string.find(line_str, '[<"][a-zA-z0-9_%.]+[>"]')
 		if idx_start ~= nil and idx_end ~= nil then
-			local filename = string.sub(line_str, idx_start, idx_end)
+			local filename = string.sub(line_str, idx_start + 1, idx_end - 1)
 			return filename
 		end
 	end
@@ -23,11 +23,11 @@ function M.GotoHeaderFile(options)
 	local curline = fn.line(".")
 	local filename = M.GetHeaderName(curline)
 	if filename ~= "" then
-    local exclude_dirs = options.goto_header.exclude_dirs
-    local include_dirs = options.goto_header.include_dirs
-    local flags = options.goto_header.search_flags
-    local results = utils.SearchFile(flags, filename, exclude_dirs, include_dirs)
-    utils.DisplayOptionalList(results, filename)
+	    local exclude_dirs = options.goto_header.exclude_dirs
+	    local include_dirs = options.goto_header.include_dirs
+	    local flags = options.goto_header.search_flags
+	    local results = utils.SearchFile(flags, filename, exclude_dirs, include_dirs)
+	    utils.DisplayOptionalList(results, filename)
 	else
 		print("Can't find the header file declaration in current line!")
 	end

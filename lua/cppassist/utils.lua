@@ -28,13 +28,13 @@ function M.DisplayOptionalList(list, obj)
 			if #idx ~= 0 then
 				idx = tonumber(idx)
 				if idx > #list then
-          print(" ")
+					print(" ")
 					print("Invalid index : " .. idx)
 				elseif idx == 0 then
 					return false
 				else
 					M.OpenFile(list[idx])
-          return true
+					return true
 				end
 			end
 		end
@@ -67,13 +67,13 @@ function M.SearchFile(flags, file_name, exclude_dirs, include_dirs)
 	for _, idir in ipairs(include_dirs) do
 		local fd_cmd = fd_exe .. " " .. flags .. exclude_cmd .. file_name .. " " .. idir
 		results = fn.systemlist(fd_cmd)
-		if vim.v.shell_error ~= 0 then
-			M.ShowFdError(results)
-			return {}
-		end
 		if #results ~= 0 then
 			break
 		end
+	end
+	if vim.v.shell_error ~= 0 then
+		M.ShowFdError(results)
+		return {}
 	end
 	return results
 end
@@ -150,7 +150,7 @@ end
 function M.AppendFile(str)
 	if str ~= "" then
 		local t = M.SplitString(str, "\n")
-    fn.append(fn.line("$"), " ")
+		fn.append(fn.line("$"), " ")
 		for _, j in ipairs(t) do
 			fn.append(fn.line("$"), j)
 		end
