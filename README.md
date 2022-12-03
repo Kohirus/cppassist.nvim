@@ -119,4 +119,4 @@ map('n', '<leader>gh', '<Cmd>GotoHeaderFile<CR>', opts)
 
 ## Ideas💡
 
-If you have a better idea, please tell me with email: kohiurs@foxmail.com
+If you have a better idea, please tell me with email: kohirus@foxmail.com
