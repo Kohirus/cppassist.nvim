@@ -20,23 +20,25 @@ function M.DisplayOptionalList(list, obj)
 			return true
 		else
 			print("Searching for " .. obj .. " ...")
-			for idx, val in ipairs(list) do
-				print(idx, ": " .. val)
-			end
-			print("0 : cancel")
-			local idx = fn.input("Select the file you want: ")
-			if #idx ~= 0 then
-				idx = tonumber(idx)
-				if idx > #list then
-					print(" ")
-					print("Invalid index : " .. idx)
-				elseif idx == 0 then
-					return false
-				else
-					M.OpenFile(list[idx])
-					return true
-				end
-			end
+      -- use vim.ui.select
+      vim.ui.select(list, {
+        prompt = "Select the file you want(0:cancel):"
+      }, function(item, idx)
+          if not item then
+            return false
+          end
+          if idx ~= 0 then
+            idx = tonumber(idx)
+            if idx > #list then
+              print("Invalid index : " .. idx)
+            elseif idx == 0 then
+              return false
+            else
+              M.OpenFile(list[idx])
+              return true
+            end
+          end
+        end)
 		end
 	end
 	return false
