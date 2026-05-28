@@ -8,7 +8,7 @@ A Neovim plugin that can do sometings like VAssistX.
 use {
   'Kohirus/cppassist.nvim',
   opt = true,
-  ft = { "h", "cpp", "hpp", "c", "cc", "cxx" },
+  ft = { "h", "cpp", "hpp", "c", "cc", "cxx", "cuda" },
   config = function()
     require("cppassist").setup()
   end,
