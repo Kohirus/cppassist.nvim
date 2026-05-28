@@ -104,10 +104,10 @@ function M.ExtensionCmd(extension)
 	else
 		local res = nil
 		local firstch = string.sub(extension, 1, 1)
-		if firstch == "h" then
-			res = " -e cpp -e cxx -e c -e cc "
-		elseif firstch == "c" then
-			res = " -e h -e hpp -e hxx "
+		if firstch == "h" or extension == "cuh" then
+			res = " -e cpp -e cxx -e c -e cc -e cu"
+		elseif firstch == "c" or extension == "cu" then
+			res = " -e h -e hpp -e hxx -e cuh"
 		else
 			print("Invalid filetype!")
 		end
